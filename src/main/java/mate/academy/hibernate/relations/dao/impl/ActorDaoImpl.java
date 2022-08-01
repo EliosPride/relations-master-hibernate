@@ -18,39 +18,28 @@ public class ActorDaoImpl extends AbstractDao implements ActorDao {
     @Override
     public Actor add(Actor actor) {
         SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
-        Session session = null;
         Transaction transaction = null;
-        try {
-            session = sessionFactory.openSession();
+        try (Session session = sessionFactory.openSession()) {
             transaction = session.beginTransaction();
             session.save(actor);
             transaction.commit();
+            return actor;
         } catch (Exception e) {
             if (transaction != null) {
                 transaction.rollback();
             }
             throw new DataProcessingException("Can't save actor to db", e);
         }
-        return actor;
     }
 
     @Override
     public Optional<Actor> get(Long id) {
         SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
-        Session session = null;
-        Transaction transaction = null;
-        Actor actor;
-        try {
-            session = sessionFactory.openSession();
-            transaction = session.beginTransaction();
-            actor = session.get(Actor.class, id);
-            transaction.commit();
+        try (Session session = sessionFactory.openSession()) {
+            Actor actor = session.get(Actor.class, id);
+            return Optional.of(actor);
         } catch (Exception e) {
-            if (transaction != null) {
-                transaction.rollback();
-            }
             throw new DataProcessingException("Can't get Actor from db", e);
         }
-        return Optional.of(actor);
     }
 }
